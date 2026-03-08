@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getApiUrl } from "./Settings";
+import { useLang } from "../LangContext";
 
 interface TokenRecord {
   id: string;
@@ -38,6 +39,7 @@ function fmtTime(ts: number) {
 }
 
 export function LiveMonitor() {
+  const { t } = useLang();
   const [connected, setConnected] = useState(false);
   const [totals, setTotals] = useState<Totals>({
     records: [],
@@ -60,8 +62,8 @@ export function LiveMonitor() {
       });
 
       es.addEventListener("record", (e) => {
-        const { totals: t } = JSON.parse(e.data) as { record: TokenRecord; totals: Totals };
-        setTotals(t);
+        const { totals: next } = JSON.parse(e.data) as { record: TokenRecord; totals: Totals };
+        setTotals(next);
         setFlash(true);
         setTimeout(() => setFlash(false), 600);
       });
@@ -90,64 +92,57 @@ export function LiveMonitor() {
 
   return (
     <div className="live-monitor">
-      {/* Status bar */}
       <div className="lm-header">
         <div className={`status-dot ${connected ? "online" : "offline"}`} />
         <span className="status-text">
-          {connected ? "已连接 OpenClaw 日志服务" : "未连接（重试中…）"}
+          {connected ? t.connected : t.disconnected}
         </span>
         {totals.records.length > 0 && (
-          <button className="clear-btn" onClick={handleClear}>
-            清空
-          </button>
+          <button className="clear-btn" onClick={handleClear}>{t.clear}</button>
         )}
       </div>
 
-      {/* Summary cards */}
       <div className={`lm-stats ${flash ? "flash" : ""}`}>
         <div className="lm-stat">
-          <div className="stat-label">累计输入</div>
+          <div className="stat-label">{t.totalInput}</div>
           <div className="stat-value">{fmt(totals.totalInputTokens)}</div>
           <div className="stat-sub">tokens</div>
         </div>
         <div className="lm-stat">
-          <div className="stat-label">累计输出</div>
+          <div className="stat-label">{t.totalOutput}</div>
           <div className="stat-value">{fmt(totals.totalOutputTokens)}</div>
           <div className="stat-sub">tokens</div>
         </div>
         <div className="lm-stat highlight">
-          <div className="stat-label">累计费用</div>
+          <div className="stat-label">{t.totalCost}</div>
           <div className="stat-value">{fmtCost(totals.totalCost)}</div>
           <div className="stat-sub">
             {fmt(totals.totalInputTokens + totals.totalOutputTokens)} total
           </div>
         </div>
         <div className="lm-stat">
-          <div className="stat-label">调用次数</div>
+          <div className="stat-label">{t.requests}</div>
           <div className="stat-value">{totals.records.length}</div>
           <div className="stat-sub">requests</div>
         </div>
       </div>
 
-      {/* Call log */}
       {totals.records.length === 0 ? (
         <div className="lm-empty">
-          <p>等待 OpenClaw 上报 token 用量…</p>
-          <code className="api-hint">
-            POST {API}/api/log-tokens
-          </code>
+          <p>{t.waiting}</p>
+          <code className="api-hint">POST {API}/api/log-tokens</code>
         </div>
       ) : (
         <div className="lm-table-wrap">
           <table className="lm-table">
             <thead>
               <tr>
-                <th>时间</th>
-                <th>模型</th>
-                <th>标签</th>
-                <th>输入</th>
-                <th>输出</th>
-                <th>费用</th>
+                <th>{t.colTime}</th>
+                <th>{t.colModel}</th>
+                <th>{t.colLabel}</th>
+                <th>{t.colInput}</th>
+                <th>{t.colOutput}</th>
+                <th>{t.colCost}</th>
               </tr>
             </thead>
             <tbody>
@@ -155,9 +150,7 @@ export function LiveMonitor() {
                 <tr key={r.id}>
                   <td className="mono">{fmtTime(r.timestamp)}</td>
                   <td>
-                    <span className={`provider-tag ${r.provider}`}>
-                      {r.model}
-                    </span>
+                    <span className={`provider-tag ${r.provider}`}>{r.model}</span>
                   </td>
                   <td className="label-cell">{r.label ?? "—"}</td>
                   <td className="mono">{fmt(r.inputTokens)}</td>
@@ -170,12 +163,11 @@ export function LiveMonitor() {
         </div>
       )}
 
-      {/* OpenClaw integration guide */}
       <details className="integration-guide">
-        <summary>如何在 OpenClaw 中配置调用？</summary>
+        <summary>{t.guideTitle}</summary>
         <div className="guide-body">
-          <p>在你的 OpenClaw Workspace Skill 或工具回调中，每次 AI 调用后发送：</p>
-          <pre>{`POST http://localhost:3001/api/log-tokens
+          <p>{t.guideDesc}</p>
+          <pre>{`POST ${API}/api/log-tokens
 Content-Type: application/json
 
 {

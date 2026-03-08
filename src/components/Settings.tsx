@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLang } from "../LangContext";
 
 const STORAGE_KEY = "openclaw_api_url";
 export const DEFAULT_API_URL = "http://localhost:3001";
@@ -8,6 +9,7 @@ export function getApiUrl(): string {
 }
 
 export function Settings() {
+  const { t, lang } = useLang();
   const [url, setUrl]     = useState(getApiUrl);
   const [saved, setSaved] = useState(false);
 
@@ -24,13 +26,14 @@ export function Settings() {
     setUrl(DEFAULT_API_URL);
   }
 
+  const commentLabel = lang === "zh" ? "// 可选，用于标记调用来源" : "// optional call label";
+
   return (
     <div className="settings">
       <section className="card">
-        <h2>OpenClaw 日志服务器</h2>
-        <p className="settings-desc">
-          配置 Token 日志 API 的地址。如果你在本机运行 OpenClaw，默认值即可。<br />
-          如果你将 API 服务部署到了其他机器或云端，在此填写对应地址。
+        <h2>{t.settingsTitle}</h2>
+        <p className="settings-desc" style={{ whiteSpace: "pre-line" }}>
+          {t.settingsDesc}
         </p>
 
         <div className="settings-row">
@@ -45,41 +48,40 @@ export function Settings() {
               spellCheck={false}
             />
             <button className="btn-primary" onClick={save}>
-              {saved ? "已保存 ✓" : "保存"}
+              {saved ? t.saved : t.save}
             </button>
-            <button className="btn-ghost" onClick={reset}>重置</button>
+            <button className="btn-ghost" onClick={reset}>{t.reset}</button>
           </div>
         </div>
 
         <div className="settings-endpoints">
-          <h3>API 端点</h3>
+          <h3>{t.endpointsTitle}</h3>
           <table className="endpoint-table">
             <tbody>
               <tr>
                 <td><code>POST {url}/api/log-tokens</code></td>
-                <td>OpenClaw 上报 token 用量</td>
+                <td>{t.epLogTokens}</td>
               </tr>
               <tr>
                 <td><code>GET {url}/api/stream</code></td>
-                <td>SSE 实时推送（前端订阅）</td>
+                <td>{t.epStream}</td>
               </tr>
               <tr>
                 <td><code>GET {url}/api/history</code></td>
-                <td>获取完整历史记录</td>
+                <td>{t.epHistory}</td>
               </tr>
               <tr>
                 <td><code>DELETE {url}/api/history</code></td>
-                <td>清空历史记录</td>
+                <td>{t.epClear}</td>
               </tr>
             </tbody>
           </table>
         </div>
 
         <details className="integration-guide">
-          <summary>OpenClaw 调用示例（复制到你的 skill/hook 中）</summary>
+          <summary>{t.integrationTitle}</summary>
           <div className="guide-body">
-            <pre>{`// 在每次 AI 调用后执行
-await fetch("${url}/api/log-tokens", {
+            <pre>{`await fetch("${url}/api/log-tokens", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
@@ -89,7 +91,7 @@ await fetch("${url}/api/log-tokens", {
     outputTokens:     usage.output_tokens,
     inputCostPer1M:   3.0,
     outputCostPer1M:  15.0,
-    label:            "chat-reply",   // 可选，用于标记调用来源
+    label:            "chat-reply",   ${commentLabel}
   }),
 });`}</pre>
           </div>

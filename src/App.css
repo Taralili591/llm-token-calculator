@@ -40,8 +40,16 @@ body {
 
 /* Header */
 .header {
-  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 2rem 0 1rem;
+  gap: 1rem;
+}
+
+.header-text {
+  text-align: center;
+  flex: 1;
 }
 
 .header h1 {
@@ -56,6 +64,25 @@ body {
 .header p {
   color: var(--text2);
   margin-top: 0.5rem;
+}
+
+.lang-toggle {
+  padding: 0.4rem 0.9rem;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text2);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.lang-toggle:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 /* Cards */
