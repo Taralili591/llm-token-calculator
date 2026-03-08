@@ -1,74 +1,55 @@
 import { useState, useMemo } from "react";
-import { MODELS } from "../data/models";
+import { MODELS, PROVIDER_LABELS } from "../data/models";
 import type { ModelPricing } from "../data/models";
-import {
-  countTokensForModel,
-  formatNumber,
-  formatCost,
-  calcCost,
-} from "../utils/tokenizer";
+import { countTokensForModel, formatNumber, formatCost, calcCost } from "../utils/tokenizer";
 
-const PROVIDERS = ["all", "anthropic", "openai"] as const;
-type Provider = (typeof PROVIDERS)[number];
+const ALL_PROVIDERS = ["all", ...Object.keys(PROVIDER_LABELS)] as const;
 
 export function TokenCalculator() {
-  const [inputText, setInputText] = useState("");
-  const [outputText, setOutputText] = useState("");
+  const [inputText, setInputText]       = useState("");
+  const [outputText, setOutputText]     = useState("");
   const [selectedModelId, setSelectedModelId] = useState<string>(MODELS[0].id);
-  const [providerFilter, setProviderFilter] = useState<Provider>("all");
+  const [providerFilter, setProviderFilter]   = useState<string>("all");
 
   const filteredModels = useMemo(
-    () =>
-      providerFilter === "all"
-        ? MODELS
-        : MODELS.filter((m) => m.provider === providerFilter),
+    () => providerFilter === "all" ? MODELS : MODELS.filter((m) => m.provider === providerFilter),
     [providerFilter]
   );
 
-  const selectedModel: ModelPricing =
-    MODELS.find((m) => m.id === selectedModelId) ?? MODELS[0];
+  const selectedModel: ModelPricing = MODELS.find((m) => m.id === selectedModelId) ?? MODELS[0];
 
-  const inputTokens = useMemo(
-    () => countTokensForModel(inputText, selectedModel.tokenizer),
-    [inputText, selectedModel.tokenizer]
-  );
+  const inputTokens  = useMemo(() => countTokensForModel(inputText,  selectedModel.tokenizer), [inputText,  selectedModel.tokenizer]);
+  const outputTokens = useMemo(() => countTokensForModel(outputText, selectedModel.tokenizer), [outputText, selectedModel.tokenizer]);
 
-  const outputTokens = useMemo(
-    () => countTokensForModel(outputText, selectedModel.tokenizer),
-    [outputText, selectedModel.tokenizer]
-  );
-
-  const inputCost = calcCost(inputTokens, selectedModel.inputPricePer1M);
+  const inputCost  = calcCost(inputTokens,  selectedModel.inputPricePer1M);
   const outputCost = calcCost(outputTokens, selectedModel.outputPricePer1M);
-  const totalCost = inputCost + outputCost;
+  const totalCost  = inputCost + outputCost;
+  const contextUsedPct = Math.min(((inputTokens + outputTokens) / selectedModel.contextWindow) * 100, 100);
 
-  const contextUsedPct = Math.min(
-    ((inputTokens + outputTokens) / selectedModel.contextWindow) * 100,
-    100
-  );
+  function selectProvider(p: string) {
+    setProviderFilter(p);
+    const first = MODELS.find((m) => p === "all" || m.provider === p);
+    if (first) setSelectedModelId(first.id);
+  }
 
   return (
     <div className="calculator">
-      {/* Model Selection */}
+      {/* Provider filter */}
       <section className="card">
-        <h2>Model</h2>
-        <div className="provider-tabs">
-          {PROVIDERS.map((p) => (
+        <h2>Provider</h2>
+        <div className="provider-scroll">
+          {ALL_PROVIDERS.map((p) => (
             <button
               key={p}
               className={`tab ${providerFilter === p ? "active" : ""}`}
-              onClick={() => {
-                setProviderFilter(p);
-                const first = MODELS.find(
-                  (m) => p === "all" || m.provider === p
-                );
-                if (first) setSelectedModelId(first.id);
-              }}
+              onClick={() => selectProvider(p)}
             >
-              {p === "all" ? "All" : p === "anthropic" ? "Anthropic" : "OpenAI"}
+              {p === "all" ? "All" : (PROVIDER_LABELS[p] ?? p)}
             </button>
           ))}
         </div>
+
+        <h2 style={{ marginTop: "1rem" }}>Model</h2>
         <div className="model-grid">
           {filteredModels.map((model) => (
             <button
@@ -78,18 +59,22 @@ export function TokenCalculator() {
             >
               <div className="model-name">{model.name}</div>
               <div className="model-prices">
-                <span>In: ${model.inputPricePer1M}/1M</span>
-                <span>Out: ${model.outputPricePer1M}/1M</span>
+                {model.inputPricePer1M === 0 && model.outputPricePer1M === 0 ? (
+                  <span className="varies">{model.note ?? "Varies"}</span>
+                ) : (
+                  <>
+                    <span>In: ${model.inputPricePer1M}/1M</span>
+                    <span>Out: ${model.outputPricePer1M}/1M</span>
+                  </>
+                )}
               </div>
-              <div className="model-ctx">
-                {formatNumber(model.contextWindow)} ctx
-              </div>
+              <div className="model-ctx">{formatNumber(model.contextWindow)} ctx</div>
             </button>
           ))}
         </div>
       </section>
 
-      {/* Text Inputs */}
+      {/* Text inputs */}
       <section className="card text-section">
         <div className="text-col">
           <label>
@@ -117,7 +102,9 @@ export function TokenCalculator() {
 
       {/* Results */}
       <section className="card results">
-        <h2>Cost Estimate — {selectedModel.name}</h2>
+        <h2>Cost Estimate — {selectedModel.name}
+          {selectedModel.note && <span className="model-note">{selectedModel.note}</span>}
+        </h2>
         <div className="stats">
           <div className="stat">
             <div className="stat-label">Input tokens</div>
@@ -132,9 +119,7 @@ export function TokenCalculator() {
           <div className="stat highlight">
             <div className="stat-label">Total cost</div>
             <div className="stat-value">{formatCost(totalCost)}</div>
-            <div className="stat-sub">
-              {formatNumber(inputTokens + outputTokens)} tokens
-            </div>
+            <div className="stat-sub">{formatNumber(inputTokens + outputTokens)} tokens</div>
           </div>
           <div className="stat">
             <div className="stat-label">Per 1K requests</div>
@@ -143,14 +128,11 @@ export function TokenCalculator() {
           </div>
         </div>
 
-        {/* Context window bar */}
         <div className="ctx-section">
           <div className="ctx-label">
             <span>Context window usage</span>
             <span>
-              {formatNumber(inputTokens + outputTokens)} /{" "}
-              {formatNumber(selectedModel.contextWindow)} tokens (
-              {contextUsedPct.toFixed(1)}%)
+              {formatNumber(inputTokens + outputTokens)} / {formatNumber(selectedModel.contextWindow)} tokens ({contextUsedPct.toFixed(1)}%)
             </span>
           </div>
           <div className="ctx-bar">

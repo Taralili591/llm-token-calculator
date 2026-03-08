@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getApiUrl } from "./Settings";
 
 interface TokenRecord {
   id: string;
@@ -20,7 +21,7 @@ interface Totals {
   totalCost: number;
 }
 
-const API = "http://localhost:3001";
+const API = getApiUrl();
 
 function fmt(n: number) {
   return n.toLocaleString("en-US");
@@ -133,7 +134,7 @@ export function LiveMonitor() {
         <div className="lm-empty">
           <p>等待 OpenClaw 上报 token 用量…</p>
           <code className="api-hint">
-            POST http://localhost:3001/api/log-tokens
+            POST {API}/api/log-tokens
           </code>
         </div>
       ) : (
