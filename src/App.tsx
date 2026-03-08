@@ -7,7 +7,7 @@ import "./App.css";
 type Tab = "calculator" | "live" | "settings";
 
 function App() {
-  const [tab, setTab] = useState<Tab>("calculator");
+  const [tab, setTab] = useState<Tab>("live");
 
   return (
     <div className="app">
@@ -17,12 +17,12 @@ function App() {
       </header>
 
       <nav className="nav-tabs">
-        <button className={`nav-tab ${tab === "calculator" ? "active" : ""}`} onClick={() => setTab("calculator")}>
-          Token 计算器
-        </button>
         <button className={`nav-tab ${tab === "live" ? "active" : ""}`} onClick={() => setTab("live")}>
           实时监控
           <span className="nav-badge">OpenClaw</span>
+        </button>
+        <button className={`nav-tab ${tab === "calculator" ? "active" : ""}`} onClick={() => setTab("calculator")}>
+          Token 计算器
         </button>
         <button className={`nav-tab ${tab === "settings" ? "active" : ""}`} onClick={() => setTab("settings")}>
           设置
