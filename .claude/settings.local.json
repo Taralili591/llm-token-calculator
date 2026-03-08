@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create vite@latest . -- --template react-ts)",
+      "Bash(npx create-vite@latest . --template react-ts --force)",
+      "Bash(npx create-vite@latest temp-app --template react-ts)",
+      "Bash(npm install)",
+      "Bash(npm install @anthropic-ai/tokenizer gpt-tokenizer)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:5173/)",
+      "Bash(npm install -D vite-plugin-wasm vite-plugin-top-level-await)",
+      "Bash(npm uninstall @anthropic-ai/tokenizer vite-plugin-wasm vite-plugin-top-level-await)",
+      "Bash(curl -s http://localhost:5173/)",
+      "Bash(npm run build)",
+      "Bash(curl -s http://localhost:5173/src/components/TokenCalculator.tsx)",
+      "WebFetch(domain:github.com)",
+      "Bash(npm install express cors)",
+      "Bash(npm install -D @types/express @types/cors tsx)",
+      "Bash(curl -s http://localhost:3001/api/health)",
+      "Bash(curl -s -X POST http://localhost:3001/api/log-tokens -H \"Content-Type: application/json\" -d '{\"\"model\"\":\"\"claude-sonnet-4-6\"\",\"\"provider\"\":\"\"anthropic\"\",\"\"inputTokens\"\":1234,\"\"outputTokens\"\":567,\"\"inputCostPer1M\"\":3.0,\"\"outputCostPer1M\"\":15.0,\"\"label\"\":\"\"test-call\"\"}')",
+      "Bash(curl -s http://localhost:3001/api/history)",
+      "Bash(curl -s -X POST http://localhost:3001/api/log-tokens -H \"Content-Type: application/json\" -d '{\"\"model\"\":\"\"claude-haiku-4-5\"\",\"\"provider\"\":\"\"anthropic\"\",\"\"inputTokens\"\":800,\"\"outputTokens\"\":300,\"\"inputCostPer1M\"\":0.8,\"\"outputCostPer1M\"\":4.0,\"\"label\"\":\"\"verify\"\"}')",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(f''records={len\\(d[\"\"records\"\"]\\)}, totalCost={d[\"\"totalCost\"\"]:.6f}''\\)\")",
+      "Bash(gh auth status)",
+      "Bash(pm2 --version)",
+      "Bash(\"/Users/lizhuo/Desktop/Claude code/token:*)",
+      "Bash(git init)",
+      "Bash(git add .)",
+      "Bash(git commit -m \"feat: LLM token calculator with OpenClaw real-time monitor:*)"
+    ]
+  }
+}
